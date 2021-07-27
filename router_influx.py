@@ -1,10 +1,12 @@
 #!/opt/bin/python3
 """router_influx.py: Telemtry collection script for ASUS Merlin wifi routers"""
+__author__ = "Richard Pavlovsky (pavlovsky@mac.com)"
 
 import datetime
-import subprocess
-import re
 import os
+import re
+import subprocess
+
 from influxdb import InfluxDBClient
 
 f=open(".passwd","r")
