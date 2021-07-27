@@ -1,4 +1,5 @@
 #!/opt/bin/python3
+"""router_influx.py: Telemtry collection script for ASUS Merlin wifi routers"""
 
 import datetime
 import subprocess
