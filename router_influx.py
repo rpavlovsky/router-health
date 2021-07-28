@@ -136,9 +136,9 @@ class RouterStats:
         p2.stdout.close()           
         p3.stdout.close()           
         used_kb, free_kb = p4.communicate()[0].decode('ascii').rstrip().split()
-        used_mb = used_kb / 1024.0
-        free_mb = free_kb / 1024.0
-        return (float(used_mb), float(free_mb)) 
+        used_mb = float( used_kb ) / 1024.0
+        free_mb = float( free_kb ) / 1024.0
+        return( used_mb, free_mb ) 
 
     def getAssocList( self, interface='eth1' ):
         ''' Get the number of wifi connections per interface, return as a float'''
