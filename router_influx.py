@@ -6,21 +6,13 @@ import datetime
 import re
 import subprocess
 
-from influxdb import InfluxDBClient  # allows connectivity to Influx DB
+from influxdb import InfluxDBClient  # pip install influxdb
 
-class RouterStats:
-    def __init__(self, router_model, measurement_name):
-        self.model  = router_model
-        self.tstamp = datetime.datetime.utcnow()
-
-        if router_model == 'ac88u':
-            self.cputempfile = '/sys/class/thermal/thermal_zone0/temp'
-        elif router_model == 'ac68u':
-            self.cputempfile = '/proc/dmu/temperature'
-        elif router_model == 'n66r':
-            self.cputempfile = ''
-        else:
-            print('unknown router model')
+class Record:
+    """ noun (rekard) a thing constituting a piece of evidence from the past """
+    def __init__( self, measurement_name ):
+        """ constructor, also grabs some details on how to connect to influx """
+        self.measurement = measurement_name
 
         # read influx user and pass from filesystem file called .passwd
         f=open(".passwd","r")
@@ -33,10 +25,55 @@ class RouterStats:
         self.ifdb   = "grafana"
         self.ifhost = "192.168.1.151"
         self.ifport = 8086
+    
+    def record( self, tstamp, ping_ms ):
+        """ verb (rekord) set down in writing or some other form for later reference """
+        # format the data as a single measurement for influx
+        body = [
+            {                                     
+                "measurement": self.measurement,
+                "time": tstamp,       
+                "fields": {         
+                    "ping": ping_ms,
+                    #"used_mb": used_mb,
+                    #"free_mb": free_mb,
+                    #"eth1_assoc": e1assoc,
+                    #"eth2_assoc": e2assoc,
+                    #"tot_assoc": totassoc,
+                    #"eth0_rx_bytes": eth0_rx_bytes,
+                    #"eth0_tx_bytes": eth0_tx_bytes,
+                    #"cpu_temp": cpu_temp,
+                    #"cpu_usr": cpu_usr,
+                    #"cpu_sys": cpu_sys,
+                    #"cpu_nic": cpu_nic,
+                    #"cpu_idle": cpu_idle,
+                    #"cpu_io": cpu_io,
+                    #"cpu_irq": cpu_irq,
+                    #"cpu_sirq": cpu_sirq,
+                }                   
+            }                       
+        ]   
 
-        self.measurement = measurement_name
+        # connect to influx         
+        ifclient = InfluxDBClient(self.ifhost,self.ifport,self.ifuser,self.ifpass,self.ifdb)
+                            
+        # write the measurement     
+        #ifclient.write_points(body)     
 
-                           
+class RouterStats:
+    def __init__( self, router_model ):
+        self.model  = router_model
+        self.tstamp = datetime.datetime.utcnow()
+
+        if router_model == 'ac88u':
+            self.cputempfile = '/sys/class/thermal/thermal_zone0/temp'
+        elif router_model == 'ac68u':
+            self.cputempfile = '/proc/dmu/temperature'
+        elif router_model == 'n66r':
+            self.cputempfile = ''
+        else:
+            print('unknown router model')
+               
     def getCpuStats():
         # router cpu                                                                                               
         p1 = subprocess.Popen(["top", "-bn1"], stdout=subprocess.PIPE)                                              
@@ -127,42 +164,12 @@ class RouterStats:
 
 def main():
     print( "Router Stats Collection Script for Asus Merlin!" )
-    rstats = RouterStats( 'ac88u', 'asus_router' )
+    rstats = RouterStats( 'ac88u' )
     print(rstats.model)
     print(rstats.tstamp)
     ping_ms = rstats.getPingMs( 'www.google.com' )
-    
-    # format the data as a single measurement for influx
-    body = [
-        {                                     
-            "measurement": rstats.measurement,
-            "time": rstats.tstamp,       
-            "fields": {         
-                "ping": ping_ms,
-                #"used_mb": used_mb,
-                #"free_mb": free_mb,
-                #"eth1_assoc": e1assoc,
-                #"eth2_assoc": e2assoc,
-                #"tot_assoc": totassoc,
-                #"eth0_rx_bytes": eth0_rx_bytes,
-                #"eth0_tx_bytes": eth0_tx_bytes,
-                #"cpu_temp": cpu_temp,
-                #"cpu_usr": cpu_usr,
-                #"cpu_sys": cpu_sys,
-                #"cpu_nic": cpu_nic,
-                #"cpu_idle": cpu_idle,
-                #"cpu_io": cpu_io,
-                #"cpu_irq": cpu_irq,
-                #"cpu_sirq": cpu_sirq,
-            }                   
-        }                       
-    ]   
-
-    # connect to influx         
-    ifclient = InfluxDBClient(rstats.ifhost,rstats.ifport,rstats.ifuser,rstats.ifpass,rstats.ifdb)
-                            
-    # write the measurement     
-    #ifclient.write_points(body)     
+    robj = Record( 'asus_router' )
+    robj.record( rstats.tstamp, ping_ms )
 
 if __name__ == "__main__":
     main()
