@@ -33,6 +33,10 @@ class Record:
         print("ping_ms: ", ping_ms)
         used_mb, free_mb = rstats.getMemUsage()
         print("used_mb: ", used_mb, " free_mb: ", free_mb)
+        e1assoc = rstats.getAssocList( rstats.interface24 )
+        e2assoc = rstats.getAssocList( rstats.interface5 )
+        totassoc = e1assoc + e2assoc
+        print( "24assoc: ", e1assoc, " 5assoc: ", e2assoc, " totassoc: ", totassoc )
 
         # format the data as a single measurement for influx
         body = [
@@ -43,9 +47,9 @@ class Record:
                     "ping": ping_ms,
                     "used_mb": used_mb,
                     "free_mb": free_mb,
-                    #"eth1_assoc": e1assoc,
-                    #"eth2_assoc": e2assoc,
-                    #"tot_assoc": totassoc,
+                    "eth1_assoc": e1assoc,
+                    "eth2_assoc": e2assoc,
+                    "tot_assoc": totassoc,
                     #"eth0_rx_bytes": eth0_rx_bytes,
                     #"eth0_tx_bytes": eth0_tx_bytes,
                     #"cpu_temp": cpu_temp,
@@ -73,10 +77,16 @@ class RouterStats:
 
         if router_model == 'ac88u':
             self.cputempfile = '/sys/class/thermal/thermal_zone0/temp'
+            self.interface24 = 'eth6'
+            self.interface5  = 'eth7'
         elif router_model == 'ac68u':
             self.cputempfile = '/proc/dmu/temperature'
+            self.interface24 = 'eth1'
+            self.interface5  = 'eth2'
         elif router_model == 'n66r':
             self.cputempfile = ''
+            self.interface24 = 'eth1'
+            self.interface5  = 'eth2'
         else:
             print('unknown router model')
                
@@ -105,9 +115,7 @@ class RouterStats:
         p = subprocess.Popen(["ping", "-c", "4", "www.google.com", ], stdout=subprocess.PIPE)
         m = re.search('round-trip min/avg/max = (\d+.\d+)/(\d+.\d+)/(\d+.\d+) ms', p.stdout.read().decode('utf-8'))
         return float(m.group(1))
-                            
-    
-                            
+                                               
     def getCpuTemp( self, ):           
         ''' get the cpu temperature, return a float'''
         p = subprocess.Popen([ "cat", "/proc/dmu/temperature" ], stdout=subprocess.PIPE)
@@ -127,7 +135,7 @@ class RouterStats:
         return float(p2.communicate()[0].decode('ascii').rstrip())
                             
     def getMemUsage( self, ):
-        # router memory             
+        ''' Get memory usage of the router in MBs '''          
         p1 = subprocess.Popen(["top", "-bn1"], stdout=subprocess.PIPE)
         p2 = subprocess.Popen(["head", "-3"], stdin=p1.stdout, stdout=subprocess.PIPE)
         p3 = subprocess.Popen(["awk", "/Mem/ { print $2,$4 }"], stdin=p2.stdout, stdout=subprocess.PIPE)
@@ -149,13 +157,7 @@ class RouterStats:
         p2.stdout.close()                                                                                
         return float(p3.communicate()[0].decode('ascii').rstrip())
                             
-    #e1assoc = getAssocList('eth1')
-    #e2assoc = getAssocList('eth2')
-    #totassoc = e1assoc + e2assoc
-    #print(e1assoc)             
-    #print(e2assoc)             
-    #print(e3assoc)             
-    #print(totassoc)      
+         
 
     def getNetBytes( self, interface='eth1' ):
         ''' Get read and write bytes per interface, return as floats '''                                                                                 
@@ -170,7 +172,7 @@ class RouterStats:
 
 def main():
     print( "Router Stats Collection Script for Asus Merlin!" )
-    rstats = RouterStats( 'ac88u' )
+    rstats = RouterStats( 'ac68u' )
     print(rstats.model)
     print(rstats.tstamp)
     robj = Record( 'asus_router' )
