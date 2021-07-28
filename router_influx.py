@@ -41,6 +41,8 @@ class Record:
         print( "rx_bytes: ", eth0_rx_bytes, " tx_bytes: ", eth0_tx_bytes )
         cpu_temp = rstats.getCpuTemp( rstats.cputempfile )               
         print( "cpu_temp: ", cpu_temp ) 
+        cpu_usr, cpu_sys, cpu_nic, cpu_idle, cpu_io, cpu_irq, cpu_sirq = rstats.getCpuStats()
+        print( "cpu_usr: ", cpu_usr, " cpu_sys: ", cpu_sys, " cpu_io: ", cpu_io)
 
         # format the data as a single measurement for influx
         body = [
@@ -57,13 +59,13 @@ class Record:
                     "eth0_rx_bytes": eth0_rx_bytes,
                     "eth0_tx_bytes": eth0_tx_bytes,
                     "cpu_temp": cpu_temp,
-                    #"cpu_usr": cpu_usr,
-                    #"cpu_sys": cpu_sys,
-                    #"cpu_nic": cpu_nic,
-                    #"cpu_idle": cpu_idle,
-                    #"cpu_io": cpu_io,
-                    #"cpu_irq": cpu_irq,
-                    #"cpu_sirq": cpu_sirq,
+                    "cpu_usr": cpu_usr,
+                    "cpu_sys": cpu_sys,
+                    "cpu_nic": cpu_nic,
+                    "cpu_idle": cpu_idle,
+                    "cpu_io": cpu_io,
+                    "cpu_irq": cpu_irq,
+                    "cpu_sirq": cpu_sirq,
                 }                   
             }                       
         ]   
@@ -95,7 +97,7 @@ class RouterStats:
             print('unknown router model')
                
     def getCpuStats():
-        # router cpu                                                                                               
+        ''' get cpu stats, return floats '''                                                                                              
         p1 = subprocess.Popen(["top", "-bn1"], stdout=subprocess.PIPE)                                              
         p2 = subprocess.Popen(["head", "-3"], stdin=p1.stdout, stdout=subprocess.PIPE)                              
         p3 = subprocess.Popen(["awk", "/CPU/ { print $2,$4,$6,$8,$10,$12,$14 }"], stdin=p2.stdout, stdout=subprocess.PIPE)            
@@ -103,15 +105,8 @@ class RouterStats:
         p1.stdout.close()                                                                                           
         p2.stdout.close()                                                                                           
         p3.stdout.close()                                                                                           
-        cpu_usr, cpu_sys, cpu_nic, cpu_idle, cpu_io, cpu_irq, cpu_sirq = p4.communicate()[0].decode('ascii').rstrip().split()                                     
-        cpu_usr = float(cpu_usr)                                                                           
-        cpu_sys = float(cpu_sys)    
-        cpu_nic = float(cpu_nic)    
-        cpu_idle = float(cpu_idle)  
-        cpu_io = float(cpu_io)      
-        cpu_irq = float(cpu_irq)  
-        cpu_sirq = float(cpu_sirq)
-        return cpu_usr 
+        cpu_usr, cpu_sys, cpu_nic, cpu_idle, cpu_io, cpu_irq, cpu_sirq = p4.communicate()[0].decode('ascii').rstrip().split()
+        return (float(cpu_usr), float(cpu_sys), float(cpu_nic), float(cpu_idle), float(cpu_io), float(cpu_irq), float(cpu_sirq)) 
 
     def getPingMs( self, uri='www.google.com' ):                  
         ''' ping test a uri and return avg results from 4 samples in ms, remember to save as floats!
