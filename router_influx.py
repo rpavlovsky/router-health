@@ -26,8 +26,14 @@ class Record:
         self.ifhost = "192.168.1.151"
         self.ifport = 8086
     
-    def record( self, tstamp, ping_ms ):
+    def record( self, tstamp, rstats ):
         """ verb (rekord) set down in writing or some other form for later reference """
+
+        ping_ms = rstats.getPingMs( 'www.google.com' )
+        print("ping_ms: ", ping_ms)
+        used_mb, free_mb = rstats.getMemUsage()
+        print("used_mb: ", used_mb, " free_mb: ", free_mb)
+
         # format the data as a single measurement for influx
         body = [
             {                                     
@@ -35,8 +41,8 @@ class Record:
                 "time": tstamp,       
                 "fields": {         
                     "ping": ping_ms,
-                    #"used_mb": used_mb,
-                    #"free_mb": free_mb,
+                    "used_mb": used_mb,
+                    "free_mb": free_mb,
                     #"eth1_assoc": e1assoc,
                     #"eth2_assoc": e2assoc,
                     #"tot_assoc": totassoc,
@@ -120,7 +126,7 @@ class RouterStats:
         p1.stdout.close()       
         return float(p2.communicate()[0].decode('ascii').rstrip())
                             
-    def getMemoryUsage( self, ):
+    def getMemUsage( self, ):
         # router memory             
         p1 = subprocess.Popen(["top", "-bn1"], stdout=subprocess.PIPE)
         p2 = subprocess.Popen(["head", "-3"], stdin=p1.stdout, stdout=subprocess.PIPE)
@@ -130,9 +136,9 @@ class RouterStats:
         p2.stdout.close()           
         p3.stdout.close()           
         used_kb, free_kb = p4.communicate()[0].decode('ascii').rstrip().split()
-        used_mb = float(used_kb) / 1024.0
-        free_mb = float(free_kb) / 1024.0
-        return used_mb
+        used_mb = used_kb / 1024.0
+        free_mb = free_kb / 1024.0
+        return (float(used_mb), float(free_mb)) 
 
     def getAssocList( self, interface='eth1' ):
         ''' Get the number of wifi connections per interface, return as a float'''
@@ -167,9 +173,8 @@ def main():
     rstats = RouterStats( 'ac88u' )
     print(rstats.model)
     print(rstats.tstamp)
-    ping_ms = rstats.getPingMs( 'www.google.com' )
     robj = Record( 'asus_router' )
-    robj.record( rstats.tstamp, ping_ms )
+    robj.record( rstats.tstamp, rstats )
 
 if __name__ == "__main__":
     main()
