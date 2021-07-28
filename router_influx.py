@@ -96,7 +96,7 @@ class RouterStats:
         else:
             print('unknown router model')
                
-    def getCpuStats():
+    def getCpuStats( self, ):
         ''' get cpu stats, return floats '''                                                                                              
         p1 = subprocess.Popen(["top", "-bn1"], stdout=subprocess.PIPE)                                              
         p2 = subprocess.Popen(["head", "-3"], stdin=p1.stdout, stdout=subprocess.PIPE)                              
