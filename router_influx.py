@@ -37,6 +37,8 @@ class Record:
         e2assoc = rstats.getAssocList( rstats.interface5 )
         totassoc = e1assoc + e2assoc
         print( "24assoc: ", e1assoc, " 5assoc: ", e2assoc, " totassoc: ", totassoc )
+        eth0_rx_bytes, eth0_tx_bytes = rstats.getNetBytes( 'eth0' )
+        print( "rx_bytes: ", eth0_rx_bytes, " tx_bytes: ", eth0_tx_bytes )
 
         # format the data as a single measurement for influx
         body = [
@@ -50,8 +52,8 @@ class Record:
                     "eth1_assoc": e1assoc,
                     "eth2_assoc": e2assoc,
                     "tot_assoc": totassoc,
-                    #"eth0_rx_bytes": eth0_rx_bytes,
-                    #"eth0_tx_bytes": eth0_tx_bytes,
+                    "eth0_rx_bytes": eth0_rx_bytes,
+                    "eth0_tx_bytes": eth0_tx_bytes,
                     #"cpu_temp": cpu_temp,
                     #"cpu_usr": cpu_usr,
                     #"cpu_sys": cpu_sys,
@@ -157,9 +159,7 @@ class RouterStats:
         p2.stdout.close()                                                                                
         return float(p3.communicate()[0].decode('ascii').rstrip())
                             
-         
-
-    def getNetBytes( self, interface='eth1' ):
+    def getNetBytes( self, interface='eth0' ):
         ''' Get read and write bytes per interface, return as floats '''                                                                                 
         for line in open('/proc/net/dev', 'r'):                                                                 
             if interface in line:                                                                               
@@ -167,9 +167,6 @@ class RouterStats:
                 rx_bytes, tx_bytes = (data[0], data[8])                                                         
                 return (float(rx_bytes), float(tx_bytes))  
                             
-    #eth0_rx_bytes, eth0_tx_bytes = getNetBytes('eth0')
-
-
 def main():
     print( "Router Stats Collection Script for Asus Merlin!" )
     rstats = RouterStats( 'ac68u' )
