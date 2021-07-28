@@ -39,6 +39,8 @@ class Record:
         print( "24assoc: ", e1assoc, " 5assoc: ", e2assoc, " totassoc: ", totassoc )
         eth0_rx_bytes, eth0_tx_bytes = rstats.getNetBytes( 'eth0' )
         print( "rx_bytes: ", eth0_rx_bytes, " tx_bytes: ", eth0_tx_bytes )
+        cpu_temp = rstats.getCpuTemp( rstats.cputempfile )               
+        print( "cpu_temp: ", cpu_temp ) 
 
         # format the data as a single measurement for influx
         body = [
@@ -54,7 +56,7 @@ class Record:
                     "tot_assoc": totassoc,
                     "eth0_rx_bytes": eth0_rx_bytes,
                     "eth0_tx_bytes": eth0_tx_bytes,
-                    #"cpu_temp": cpu_temp,
+                    "cpu_temp": cpu_temp,
                     #"cpu_usr": cpu_usr,
                     #"cpu_sys": cpu_sys,
                     #"cpu_nic": cpu_nic,
@@ -118,16 +120,12 @@ class RouterStats:
         m = re.search('round-trip min/avg/max = (\d+.\d+)/(\d+.\d+)/(\d+.\d+) ms', p.stdout.read().decode('utf-8'))
         return float(m.group(1))
                                                
-    def getCpuTemp( self, ):           
+    def getCpuTemp( self, cputempfile ):           
         ''' get the cpu temperature, return a float'''
-        p = subprocess.Popen([ "cat", "/proc/dmu/temperature" ], stdout=subprocess.PIPE)
+        p = subprocess.Popen([ "cat", cputempfile ], stdout=subprocess.PIPE)
         m = re.search('CPU temperature\t: (\d+)*', p.stdout.read().decode('utf-8'))
         return float(m.group(1)) 
-        #return float(p.stdout.read().decode('utf-8')) / 1024.0
-                            
-    #cpu_temp = getCpuTemp()    
-    #cpu_temp = 70.0             
-    #print(cpu_temp)             
+        #return float(p.stdout.read().decode('utf-8')) / 1024.0            
 
     def getWifiTemp( self, interface = 'eth1'):
         ''' Get the temperature of the Wifi CPU's, remember to save data as floats '''
