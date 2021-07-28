@@ -122,9 +122,12 @@ class RouterStats:
                                                
     def getCpuTemp( self, cputempfile ):           
         ''' get the cpu temperature, return a float'''
-        p = subprocess.Popen([ "cat", cputempfile ], stdout=subprocess.PIPE)
-        m = re.search('CPU temperature\t: (\d+)*', p.stdout.read().decode('utf-8'))
-        return float(m.group(1)) 
+        p1 = subprocess.Popen([ "cat", cputempfile ], stdout=subprocess.PIPE)
+        p2 = subprocess.Popen(["sed", "s/[^0-9]*//g"], stdin=p1.stdout, stdout=subprocess.PIPE)
+        p1.stdout.close()
+        return float(p2.communicate()[0].decode('ascii').rstrip())
+        #m = re.search('CPU temperature\t: (\d+)*', p.stdout.read().decode('utf-8'))
+        #return float(m.group(1)) 
         #return float(p.stdout.read().decode('utf-8')) / 1024.0            
 
     def getWifiTemp( self, interface = 'eth1'):
