@@ -2,6 +2,7 @@
 """router_influx.py: Telemtry collection script for ASUS Merlin wifi routers"""
 __author__ = "Richard Pavlovsky (pavlovsky@mac.com)"
 
+import argparse
 import datetime
 import re
 import subprocess
@@ -164,11 +165,18 @@ class RouterStats:
                 return (float(rx_bytes), float(tx_bytes))  
                             
 def main():
-    print( "Router Stats Collection Script for Asus Merlin!" )
-    rstats = RouterStats( 'ac68u' )
+    parser = argparse.ArgumentParser(description='Router Stats Collection Script for Asus Merlin!')
+    parser.add_argument('-r', '--router', required=True,
+                    help='the Asus router model (e.g. ac88u, ac68u)')
+    parser.add_argument('-m', '--measurement', required=True,
+                    help='the measurement name in influxdb to record the stats')
+
+    args = vars(parser.parse_args())
+
+    rstats = RouterStats( args['router'] )
     print(rstats.model)
     print(rstats.tstamp)
-    robj = Record( 'asus_router' )
+    robj = Record( args['measurement'] )
     robj.record( rstats.tstamp, rstats )
 
 if __name__ == "__main__":
