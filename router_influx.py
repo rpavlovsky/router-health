@@ -29,7 +29,8 @@ class Record:
     
     def record( self, tstamp, rstats ):
         """ verb (rekord) set down in writing or some other form for later reference """
-
+        
+        # to-do: add a debug or dryrun option to print these out, else no output
         ping_ms = rstats.getPingMs( 'www.google.com' )
         print("ping_ms: ", ping_ms)
         used_mb, free_mb = rstats.getMemUsage()
@@ -44,6 +45,9 @@ class Record:
         print( "cpu_temp: ", cpu_temp ) 
         cpu_usr, cpu_sys, cpu_nic, cpu_idle, cpu_io, cpu_irq, cpu_sirq = rstats.getCpuStats()
         print( "cpu_usr: ", cpu_usr, " cpu_sys: ", cpu_sys, " cpu_io: ", cpu_io)
+        e1temp = rstats.getWifiTemp( rstats.interface24 )
+        e2temp = rstats.getWifiTemp( rstats.interface5 )
+        print( "24temp: ", e1temp, " 5temp: ", e2temp )
 
         # format the data as a single measurement for influx
         body = [
@@ -67,6 +71,8 @@ class Record:
                     "cpu_io": cpu_io,
                     "cpu_irq": cpu_irq,
                     "cpu_sirq": cpu_sirq,
+                    "eth1_temp": e1temp,
+                    "eth2_temp": e2temp,
                 }                   
             }                       
         ]   
