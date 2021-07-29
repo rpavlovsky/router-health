@@ -1,0 +1,2 @@
+cru a routerstats "* * * * * cd /jffs/scripts/router-health;/jffs/scripts/router-health/router_influx.py -r ac68u -m asus_router_3"
+cru a "routerstats+30" "* * * * * (sleep 30;cd /jffs/scripts/router-health;/jffs/scripts/router-health/router_influx.py -r ac68u -m asus_router_3)"
