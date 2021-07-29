@@ -93,7 +93,7 @@ class RouterStats:
             self.interface24 = 'eth1'
             self.interface5  = 'eth2'
         elif router_model == 'n66r':
-            self.cputempfile = ''
+            self.cputempfile = 'none'
             self.cputempdiv = 1.0
             self.interface24 = 'eth1'
             self.interface5  = 'eth2'
@@ -121,13 +121,12 @@ class RouterStats:
                                                
     def getCpuTemp( self, cputempfile ):           
         ''' get the cpu temperature, return a float'''
+        if cputempfile == 'none': # n66r router model doesn't record cpu temp
+            return 0.0
         p1 = subprocess.Popen([ "cat", cputempfile ], stdout=subprocess.PIPE)
         p2 = subprocess.Popen(["sed", "s/[^0-9]*//g"], stdin=p1.stdout, stdout=subprocess.PIPE)
         p1.stdout.close()
-        return float(p2.communicate()[0].decode('ascii').rstrip()) / self.cputempdiv
-        #m = re.search('CPU temperature\t: (\d+)*', p.stdout.read().decode('utf-8'))
-        #return float(m.group(1)) 
-        #return float(p.stdout.read().decode('utf-8')) / 1024.0            
+        return float(p2.communicate()[0].decode('ascii').rstrip()) / self.cputempdiv          
 
     def getWifiTemp( self, interface = 'eth1'):
         ''' Get the temperature of the Wifi CPU's, remember to save data as floats '''
