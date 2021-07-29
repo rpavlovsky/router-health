@@ -84,14 +84,17 @@ class RouterStats:
 
         if router_model == 'ac88u':
             self.cputempfile = '/sys/class/thermal/thermal_zone0/temp'
+            self.cputempdiv = 1024.0
             self.interface24 = 'eth6'
             self.interface5  = 'eth7'
         elif router_model == 'ac68u':
             self.cputempfile = '/proc/dmu/temperature'
+            self.cputempdiv = 1.0
             self.interface24 = 'eth1'
             self.interface5  = 'eth2'
         elif router_model == 'n66r':
             self.cputempfile = ''
+            self.cputempdiv = 1.0
             self.interface24 = 'eth1'
             self.interface5  = 'eth2'
         else:
@@ -121,7 +124,7 @@ class RouterStats:
         p1 = subprocess.Popen([ "cat", cputempfile ], stdout=subprocess.PIPE)
         p2 = subprocess.Popen(["sed", "s/[^0-9]*//g"], stdin=p1.stdout, stdout=subprocess.PIPE)
         p1.stdout.close()
-        return float(p2.communicate()[0].decode('ascii').rstrip())
+        return float(p2.communicate()[0].decode('ascii').rstrip()) / self.cputempdiv
         #m = re.search('CPU temperature\t: (\d+)*', p.stdout.read().decode('utf-8'))
         #return float(m.group(1)) 
         #return float(p.stdout.read().decode('utf-8')) / 1024.0            
