@@ -79,6 +79,8 @@ class Record:
                     "cpu_sirq": cpu_sirq,
                     "eth1_temp": e1temp,
                     "eth2_temp": e2temp,
+                    "eth0_rx_thruput": eth0_rx_thruput,
+                    "eth0_tx_thruput": eth0_tx_thruput,
                 }                   
             }                       
         ]   
