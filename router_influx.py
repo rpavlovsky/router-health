@@ -55,7 +55,10 @@ class Record:
         e2temp = rstats.getWifiTemp( rstats.interface5 )
         print( "24temp: ", e1temp, " 5temp: ", e2temp )
 
-        # format the data as a single measurement for influx
+        # format the data as a single measurement for influx, remember all must be floats
+        # if they are strings or non-float values it'll look like it'll work but grafana
+        # won't be able to graph the data.  Save yourself heartache and ensure they are 
+        # floats
         body = [
             {                                     
                 "measurement": self.measurement,
