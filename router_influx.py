@@ -6,6 +6,7 @@ import argparse
 import datetime
 import re
 import subprocess
+import time
 
 from influxdb import InfluxDBClient  # pip install influxdb
 
@@ -41,6 +42,11 @@ class Record:
         print( "24assoc: ", e1assoc, " 5assoc: ", e2assoc, " totassoc: ", totassoc )
         eth0_rx_bytes, eth0_tx_bytes = rstats.getNetBytes( 'eth0' )
         print( "rx_bytes: ", eth0_rx_bytes, " tx_bytes: ", eth0_tx_bytes )
+        time.sleep(3.0) # sleep a few seconds to take another sample
+        new_eth0_rx_bytes, new_eth0_tx_bytes = rstats.getNetBytes( 'eth0' )
+        print( "new_rx_bytes: ", new_eth0_rx_bytes, " new_tx_bytes: ", new_eth0_tx_bytes ) 
+        eth0_rx_thruput, eth0_tx_thruput = rstats.getNetThruput( eth0_rx_bytes, new_eth0_rx_bytes, eth0_tx_bytes, new_eth0_tx_bytes, 3.0)
+        print( "eth0_rx_thru: ", eth0_rx_thruput, " eth0_tx_thru: ", eth0_tx_thruput )
         cpu_temp = rstats.getCpuTemp( rstats.cputempfile )               
         print( "cpu_temp: ", cpu_temp ) 
         cpu_usr, cpu_sys, cpu_nic, cpu_idle, cpu_io, cpu_irq, cpu_sirq = rstats.getCpuStats()
@@ -171,7 +177,20 @@ class RouterStats:
                 data = line.split('%s:' % interface)[1].split()                                                 
                 rx_bytes, tx_bytes = (data[0], data[8])                                                         
                 return (float(rx_bytes), float(tx_bytes))  
-                            
+
+    def getNetThruput( self, old_rxbytes, new_rx_bytes, old_txbytes, new_txbytes, interval ):
+        ''' take two measurements (presumably taken a few seconds apart) and calculate thruput '''                            
+        recv_bytes = float(new_rx_bytes) - float(old_rxbytes)
+        trans_bytes = float(new_txbytes) - float(old_txbytes)
+        
+        if(recv_bytes < 0.0):
+            print("neg number recv_bytes") #rollover or some other issue, need to handle
+        elif(trans_bytes < 0.0):
+            print("neg number trans bytes") #rollover or some other issue, need to handle
+        recv_mbps = (8.0 * (recv_bytes) / float(interval)) / 1048576 #mbits per second
+        trans_mbps = (8.0 * (trans_bytes) / float(interval)) / 1048576 #mbits per second
+        return (float(recv_bytes), float(trans_mbps))
+
 def main():
     parser = argparse.ArgumentParser(description='Router Stats Collection Script for Asus Merlin!')
     parser.add_argument('-r', '--router', required=True,
