@@ -7,7 +7,7 @@ import datetime
 import re
 import subprocess
 import time
-import speedtest
+import speedtest # pip install speedtest-cli (note: note speedtest which is diff)
 
 from influxdb import InfluxDBClient  # pip install influxdb
 
