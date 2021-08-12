@@ -1,6 +1,6 @@
 #!/opt/bin/python3
 """router_influx.py: Telemtry collection script for ASUS Merlin wifi routers"""
-__author__ = "Richard Pavlovsky (pavlovsky@mac.com)"
+__author__ = "Richard Pavlovsky (pavlovsky@mac.com) "
 
 import argparse
 import datetime
